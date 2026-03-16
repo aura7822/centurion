@@ -1,0 +1,13 @@
+# Backend API keys
+database/node_modules/
+database/.env
+*.dbbackend_cpp/config/api_keys.conf
+*.conf
+!*.conf.template
+
+# Build files
+backend_cpp/build/
+*.o
+centurion_backend
+backend_cpp/models/facenet_embedding.onnx
+*.onnx

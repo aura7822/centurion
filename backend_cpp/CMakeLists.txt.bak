@@ -1,0 +1,72 @@
+
+cmake_minimum_required(VERSION 3.10)
+project(CenturionBackend)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Find required packages
+find_package(OpenCV REQUIRED COMPONENTS core highgui imgproc objdetect video videoio dnn)
+find_package(CURL REQUIRED)
+find_package(OpenSSL REQUIRED)
+find_package(Threads REQUIRED)
+
+# Find MongoDB packages
+find_package(libmongoc-1.0 REQUIRED)
+find_package(libbson-1.0 REQUIRED)
+find_package(mongocxx REQUIRED)
+find_package(bsoncxx REQUIRED)
+
+# Include directories
+include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(${CURL_INCLUDE_DIRS})
+include_directories(${OPENSSL_INCLUDE_DIR})
+include_directories(${LIBMONGOC_INCLUDE_DIRS})
+include_directories(${LIBBSON_INCLUDE_DIRS})
+include_directories(${MONGOCXX_INCLUDE_DIRS})
+include_directories(${BSONCXX_INCLUDE_DIRS})
+include_directories(include)
+
+# Source files
+set(SOURCES
+    src/main.cpp
+    src/face_recognition.cpp
+    src/demographics_estimator.cpp
+    src/liveness_detection.cpp
+    src/tor_integration.cpp
+    src/logging.cpp
+    src/iot_simulation.cpp
+    src/network_utils.cpp
+    src/database.cpp
+    utils/image_utils.cpp
+)
+
+# Check if files exist
+foreach(src_file IN LISTS SOURCES)
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${src_file})
+        message(STATUS "Found source: ${src_file}")
+    else()
+        message(WARNING "Missing source: ${src_file}")
+    endif()
+endforeach()
+
+# Executable
+add_executable(centurion_backend ${SOURCES})
+
+# Link libraries
+target_link_libraries(centurion_backend 
+    ${OpenCV_LIBS}
+    ${CURL_LIBRARIES}
+    ${OPENSSL_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${LIBMONGOC_LIBRARIES}
+    ${LIBBSON_LIBRARIES}
+    ${MONGOCXX_LIBRARIES}
+    ${BSONCXX_LIBRARIES}
+)
+
+message(STATUS "Centurion Backend Configuration:")
+message(STATUS "  OpenCV: ${OpenCV_VERSION}")
+message(STATUS "  MongoDB C Driver: Found")
+message(STATUS "  MongoDB C++ Driver: Found")
+

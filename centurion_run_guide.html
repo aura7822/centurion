@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Centurion® — Backend Run & Test Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;500&display=swap');
+
+  :root {
+    --gold:    #d4a017;
+    --gold2:   #f0c040;
+    --bg:      #080c10;
+    --bg2:     #0d1117;
+    --bg3:     #111820;
+    --border:  #1e2d3d;
+    --green:   #00ff88;
+    --red:     #ff3a3a;
+    --cyan:    #00c8ff;
+    --text:    #c9d1d9;
+    --dim:     #586069;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── Scanline overlay ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.06) 2px,
+      rgba(0,0,0,0.06) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, #0a0f15 0%, #111a25 100%);
+    border-bottom: 1px solid var(--gold);
+    padding: 32px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), var(--gold2), var(--gold), transparent);
+    animation: shimmer 3s infinite;
+  }
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  .logo-line {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 6px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    opacity: 0.7;
+  }
+  h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 38px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 2px;
+  }
+  h1 span { color: var(--gold); }
+  .subtitle {
+    font-size: 13px;
+    color: var(--dim);
+    margin-top: 6px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: calc(100vh - 120px);
+  }
+
+  /* ── Sidebar ── */
+  nav {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .nav-section {
+    padding: 8px 20px 4px;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-top: 12px;
+  }
+  nav a {
+    display: block;
+    padding: 7px 20px;
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 13px;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    font-family: 'Inter', sans-serif;
+  }
+  nav a:hover {
+    color: var(--gold2);
+    border-left-color: var(--gold);
+    background: rgba(212,160,23,0.05);
+    padding-left: 24px;
+  }
+
+  /* ── Main content ── */
+  main {
+    padding: 40px 56px;
+    max-width: 900px;
+  }
+
+  /* ── Section ── */
+  .section {
+    margin-bottom: 56px;
+    scroll-margin-top: 20px;
+  }
+
+  h2 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold2);
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2 .num {
+    background: var(--gold);
+    color: #000;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  h3 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--cyan);
+    letter-spacing: 0.5px;
+    margin: 24px 0 10px;
+  }
+
+  p { color: var(--text); margin-bottom: 12px; line-height: 1.75; }
+
+  /* ── Code blocks ── */
+  .cmd {
+    background: #0a0f15;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    border-radius: 4px;
+    padding: 14px 18px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    margin: 10px 0 16px;
+    position: relative;
+    overflow-x: auto;
+  }
+  .cmd .prompt {
+    color: var(--green);
+    user-select: none;
+  }
+  .cmd .comment {
+    color: var(--dim);
+    font-style: italic;
+  }
+  .cmd .highlight { color: var(--gold2); }
+  .cmd .flag      { color: var(--cyan); }
+  .cmd.error-block { border-left-color: var(--red); }
+  .cmd.success-block { border-left-color: var(--green); }
+
+  .copy-btn {
+    position: absolute;
+    top: 8px; right: 10px;
+    background: rgba(212,160,23,0.15);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-size: 10px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { background: var(--gold); color: #000; }
+
+  /* ── Info boxes ── */
+  .box {
+    border-radius: 4px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 13px;
+    border-left: 3px solid;
+  }
+  .box.info    { background: rgba(0,200,255,0.06); border-color: var(--cyan);  color: #a0d8ef; }
+  .box.warn    { background: rgba(212,160,23,0.07); border-color: var(--gold);  color: #d4c08a; }
+  .box.success { background: rgba(0,255,136,0.06); border-color: var(--green); color: #90e0b0; }
+  .box.danger  { background: rgba(255,58,58,0.07); border-color: var(--red);   color: #e08080; }
+  .box strong  { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; }
+
+  /* ── Step list ── */
+  .steps { list-style: none; padding: 0; }
+  .steps li {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    align-items: flex-start;
+  }
+  .step-num {
+    min-width: 28px;
+    height: 28px;
+    border: 1px solid var(--gold);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--gold);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-body {}
+  .step-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #e0e0e0;
+    margin-bottom: 4px;
+  }
+
+  /* ── API table ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 20px;
+    font-size: 13px;
+  }
+  th {
+    background: #0d1520;
+    color: var(--gold);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-size: 11px;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid rgba(30,45,61,0.6);
+    vertical-align: top;
+    color: var(--text);
+  }
+  tr:hover td { background: rgba(212,160,23,0.03); }
+  .method {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    font-weight: 600;
+  }
+  .get  { background: rgba(0,200,255,0.15); color: var(--cyan); }
+  .post { background: rgba(0,255,136,0.12); color: var(--green); }
+  .ep   { font-family: 'Share Tech Mono', monospace; color: var(--gold2); font-size: 12px; }
+
+  /* ── Status badges ── */
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-left: 8px;
+  }
+  .badge.ok      { background: rgba(0,255,136,0.15); color: var(--green); border: 1px solid rgba(0,255,136,0.3); }
+  .badge.optional { background: rgba(212,160,23,0.12); color: var(--gold); border: 1px solid rgba(212,160,23,0.3); }
+  .badge.required { background: rgba(255,58,58,0.12); color: var(--red); border: 1px solid rgba(255,58,58,0.3); }
+
+  /* ── Progress checklist ── */
+  .checklist { list-style: none; padding: 0; }
+  .checklist li {
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(30,45,61,0.4);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+  }
+  .check { color: var(--green); font-size: 16px; }
+  .cross { color: var(--red);   font-size: 16px; }
+
+  /* ── Divider ── */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+
+  code {
+    font-family: 'Share Tech Mono', monospace;
+    background: rgba(212,160,23,0.1);
+    color: var(--gold2);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-size: 12px;
+  }
+
+  /* ── Blinking cursor ── */
+  .cursor::after {
+    content: '█';
+    animation: blink 1s step-end infinite;
+    color: var(--green);
+    font-size: 12px;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-line">Centurion® AI Security System</div>
+  <h1><span>▸</span> BACKEND RUN & TEST GUIDE</h1>
+  <div class="subtitle">Fedora Linux · C++17 · MongoDB · OpenCV DNN · Tor<span class="cursor"></span></div>
+</header>
+
+<div class="layout">
+
+<!-- ── Sidebar ── -->
+<nav>
+  <div class="nav-section">Setup</div>
+  <a href="#prereqs">Prerequisites</a>
+  <a href="#install">1. Install Dependencies</a>
+  <a href="#models">2. Get Models</a>
+  <a href="#build">3. Build Backend</a>
+  <a href="#database">4. Init MongoDB</a>
+
+  <div class="nav-section">Running</div>
+  <a href="#env">5. Configure .env</a>
+  <a href="#run">6. Start Backend</a>
+  <a href="#verify">7. Verify Running</a>
+
+  <div class="nav-section">Testing</div>
+  <a href="#health">Health Check</a>
+  <a href="#enroll">Enroll a Face</a>
+  <a href="#identify">Identify a Face</a>
+  <a href="#logs">View Logs</a>
+  <a href="#iot">IoT Status</a>
+  <a href="#tor">Test Tor</a>
+
+  <div class="nav-section">Errors</div>
+  <a href="#errors">Common Errors</a>
+</nav>
+
+<!-- ── Main ── -->
+<main>
+
+<!-- PREREQUISITES -->
+<section class="section" id="prereqs">
+  <h2><span class="num">00</span> Prerequisites</h2>
+  <p>Before anything, confirm you have these on your Fedora machine:</p>
+  <ul class="checklist">
+    <li><span class="check">✓</span> Fedora 38 / 39 / 40 (or newer)</li>
+    <li><span class="check">✓</span> At least 4GB RAM, 10GB free disk</li>
+    <li><span class="check">✓</span> Internet connection (for downloading models and deps)</li>
+    <li><span class="check">✓</span> A webcam (for live testing)</li>
+    <li><span class="check">✓</span> sudo access</li>
+  </ul>
+</section>
+
+<!-- STEP 1 -->
+<section class="section" id="install">
+  <h2><span class="num">01</span> Install Dependencies</h2>
+  <p>Run the setup script — it handles everything with <code>dnf</code>:</p>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>cd centurion/<br>
+    <span class="prompt">$ </span>chmod +x scripts/setup_env.sh<br>
+    <span class="prompt">$ </span>sudo ./scripts/setup_env.sh
+  </div>
+  <p>If you prefer manual installation, here are the individual packages:</p>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="comment"># Core build tools</span><br>
+    <span class="prompt">$ </span>sudo dnf install -y gcc-c++ cmake make git wget curl<br><br>
+    <span class="comment"># OpenCV with DNN support</span><br>
+    <span class="prompt">$ </span>sudo dnf install -y opencv-devel python3-opencv<br><br>
+    <span class="comment"># OpenSSL + CURL</span><br>
+    <span class="prompt">$ </span>sudo dnf install -y openssl-devel libcurl-devel<br><br>
+    <span class="comment"># MongoDB server</span><br>
+    <span class="prompt">$ </span>sudo dnf install -y mongodb-org<br><br>
+    <span class="comment"># MongoDB C++ driver</span><br>
+    <span class="prompt">$ </span>sudo dnf install -y mongo-cxx-driver-devel<br><br>
+    <span class="comment"># Tor</span><br>
+    <span class="prompt">$ </span>sudo dnf install -y tor<br><br>
+    <span class="comment"># Node.js (for blockchain)</span><br>
+    <span class="prompt">$ </span>sudo dnf install -y nodejs npm
+  </div>
+
+  <h3>Download required single-header libraries</h3>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="comment"># cpp-httplib (HTTP server, no Boost needed)</span><br>
+    <span class="prompt">$ </span>wget -O backend_cpp/include/httplib.h \<br>
+    &nbsp;&nbsp;"https://raw.githubusercontent.com/yhirose/cpp-httplib/master/httplib.h"<br><br>
+    <span class="comment"># nlohmann/json (JSON parsing)</span><br>
+    <span class="prompt">$ </span>wget -O backend_cpp/include/json.hpp \<br>
+    &nbsp;&nbsp;"https://github.com/nlohmann/json/releases/download/v3.11.3/json.hpp"
+  </div>
+
+  <div class="box info">
+    <strong>NOTE</strong> — If <code>mongo-cxx-driver-devel</code> is not in your Fedora repos, the setup script automatically builds it from source. This takes about 5 minutes.
+  </div>
+</section>
+
+<!-- STEP 2 -->
+<section class="section" id="models">
+  <h2><span class="num">02</span> Download AI Models</h2>
+  <p>Run the model download helper first — it grabs everything that's freely available:</p>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>chmod +x scripts/download_models.sh<br>
+    <span class="prompt">$ </span>./scripts/download_models.sh
+  </div>
+
+  <p>Then manually download the face recognition model (required):</p>
+  <table>
+    <thead>
+      <tr><th>File</th><th>Where to get it</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="ep">facenet_embedding.onnx</td>
+        <td>Download ArcFace from <a href="https://github.com/onnx/models" style="color:var(--cyan)">onnx/models</a> → rename to this</td>
+        <td><span class="badge required">REQUIRED</span></td>
+      </tr>
+      <tr>
+        <td class="ep">age_gender_model.onnx</td>
+        <td>Script downloads Caffe version. For ONNX: <a href="https://github.com/yu4u/age-gender-estimation" style="color:var(--cyan)">yu4u/age-gender-estimation</a></td>
+        <td><span class="badge required">REQUIRED</span></td>
+      </tr>
+      <tr>
+        <td class="ep">ethnicity_model.onnx</td>
+        <td><a href="https://github.com/dchen236/FairFace" style="color:var(--cyan)">dchen236/FairFace</a> — convert to ONNX</td>
+        <td><span class="badge optional">OPTIONAL</span></td>
+      </tr>
+      <tr>
+        <td class="ep">anti_spoofing_model.onnx</td>
+        <td><a href="https://github.com/minivision-ai/Silent-Face-Anti-Spoofing" style="color:var(--cyan)">Silent-Face-Anti-Spoofing</a></td>
+        <td><span class="badge optional">OPTIONAL</span></td>
+      </tr>
+      <tr>
+        <td class="ep">face_detection_yunet_2023mar.onnx</td>
+        <td>Script downloads automatically</td>
+        <td><span class="badge ok">AUTO</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p>All models go into: <code>backend_cpp/models/</code></p>
+
+  <h3>Quickest face recognition model (ArcFace)</h3>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="comment"># Download ArcFace R100 ONNX (MIT license)</span><br>
+    <span class="prompt">$ </span>pip3 install insightface onnxruntime<br>
+    <span class="prompt">$ </span>python3 -c "<br>
+    &nbsp;&nbsp;import insightface<br>
+    &nbsp;&nbsp;m = insightface.app.FaceAnalysis(name='buffalo_l')<br>
+    &nbsp;&nbsp;m.prepare(ctx_id=-1)<br>
+    &nbsp;&nbsp;print('Models downloaded to ~/.insightface/models/')<br>
+    "<br><br>
+    <span class="comment"># Then copy the w600k_r50.onnx as your face embedding model</span><br>
+    <span class="prompt">$ </span>cp ~/.insightface/models/buffalo_l/w600k_r50.onnx \<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;backend_cpp/models/facenet_embedding.onnx
+  </div>
+</section>
+
+<!-- STEP 3 -->
+<section class="section" id="build">
+  <h2><span class="num">03</span> Build the C++ Backend</h2>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>cd backend_cpp/<br>
+    <span class="prompt">$ </span>mkdir -p build && cd build<br>
+    <span class="prompt">$ </span>cmake -DCMAKE_BUILD_TYPE=Release ..<br>
+    <span class="prompt">$ </span>make -j$(nproc)<br>
+    <span class="prompt">$ </span>cd ../..
+  </div>
+
+  <div class="box success">
+    <strong>SUCCESS looks like:</strong><br>
+    <code>[100%] Linking CXX executable centurion</code><br>
+    <code>[100%] Built target centurion</code>
+  </div>
+
+  <h3>Verify the binary</h3>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>ls -lh backend_cpp/build/centurion<br>
+    <span class="comment"># Should see something like: -rwxr-xr-x ... 8.2M centurion</span>
+  </div>
+</section>
+
+<!-- STEP 4 -->
+<section class="section" id="database">
+  <h2><span class="num">04</span> Initialize MongoDB</h2>
+  <h3>Start MongoDB</h3>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>sudo systemctl start mongod<br>
+    <span class="prompt">$ </span>sudo systemctl enable mongod<br><br>
+    <span class="comment"># Verify it's running</span><br>
+    <span class="prompt">$ </span>sudo systemctl status mongod<br>
+    <span class="comment"># You should see: Active: active (running)</span>
+  </div>
+
+  <h3>Run the init script</h3>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>mongosh --file database/init_mongo.js
+  </div>
+  <div class="box success">
+    <strong>Expected output:</strong><br>
+    <code>✓ users collection ready</code><br>
+    <code>✓ face_embeddings collection ready</code><br>
+    <code>✓ access_logs collection ready</code><br>
+    <code>✓ Centurion® MongoDB init complete!</code>
+  </div>
+
+  <h3>Verify in mongosh</h3>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>mongosh<br>
+    <span class="prompt">&gt; </span>use centurion<br>
+    <span class="prompt">&gt; </span>show collections<br>
+    <span class="comment"># Should list: access_logs, face_embeddings, users, threat_scores, ...</span><br>
+    <span class="prompt">&gt; </span>exit
+  </div>
+</section>
+
+<!-- STEP 5 -->
+<section class="section" id="env">
+  <h2><span class="num">05</span> Configure .env</h2>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>cp .env.example .env<br>
+    <span class="prompt">$ </span>nano .env
+  </div>
+
+  <p>The minimum you need to change:</p>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="comment"># MongoDB — defaults work if running locally</span><br>
+    <span class="highlight">MONGO_URI</span>=mongodb://localhost:27017<br>
+    <span class="highlight">MONGO_DB</span>=centurion<br><br>
+    <span class="comment"># Port</span><br>
+    <span class="highlight">CENTURION_PORT</span>=8080<br><br>
+    <span class="comment"># Model and log directories</span><br>
+    <span class="highlight">MODEL_DIR</span>=models/<br>
+    <span class="highlight">LOG_DIR</span>=logs/<br>
+    <span class="highlight">SNAPSHOT_DIR</span>=snapshots/<br><br>
+    <span class="comment"># GPIO — set true only on Raspberry Pi</span><br>
+    <span class="highlight">GPIO_ENABLED</span>=false
+  </div>
+  <div class="box warn">
+    <strong>IMPORTANT</strong> — If you plan to use blockchain logging, also fill in <code>PRIVATE_KEY</code> and <code>RPC_URL</code>. Otherwise leave blank — the backend works without blockchain.
+  </div>
+</section>
+
+<!-- STEP 6 -->
+<section class="section" id="run">
+  <h2><span class="num">06</span> Start the Backend</h2>
+  <h3>Option A — Direct (see live output)</h3>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>cd backend_cpp/<br>
+    <span class="comment"># Load env vars then run</span><br>
+    <span class="prompt">$ </span>export $(grep -v '^#' ../.env | xargs)<br>
+    <span class="prompt">$ </span>./build/centurion
+  </div>
+
+  <h3>Option B — systemd service (background, auto-restart)</h3>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>sudo systemctl start centurion<br><br>
+    <span class="comment"># Watch live logs</span><br>
+    <span class="prompt">$ </span>sudo journalctl -u centurion -f<br><br>
+    <span class="comment"># Stop</span><br>
+    <span class="prompt">$ </span>sudo systemctl stop centurion
+  </div>
+
+  <div class="box success">
+    <strong>Successful startup looks like:</strong><br><br>
+    <code>██████╗███████╗███╗   ██╗...</code> &nbsp;← ASCII banner<br>
+    <code>[MongoDB] Connected to: mongodb://localhost:27017</code><br>
+    <code>[ModelLoader] Loaded: facenet ← models/facenet_embedding.onnx</code><br>
+    <code>[FaceRecognizer] Model loaded (CPU mode)</code><br>
+    <code>[CENTURION] 0 enrolled users loaded from MongoDB</code><br>
+    <code>[Tor] Daemon already running</code><br>
+    <code>[CENTURION] Server running on http://0.0.0.0:8080</code>
+  </div>
+</section>
+
+<!-- STEP 7 -->
+<section class="section" id="verify">
+  <h2><span class="num">07</span> Verify It's Running</h2>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>curl http://localhost:8080/health
+  </div>
+  <div class="cmd success-block">
+    <span class="comment">Expected response:</span><br>
+    {"status":"ok","service":"centurion-backend"}
+  </div>
+</section>
+
+<hr/>
+
+<!-- TESTING -->
+<section class="section" id="health">
+  <h2><span class="num">T1</span> Health Check</h2>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>curl -s http://localhost:8080/health | python3 -m json.tool
+  </div>
+</section>
+
+<section class="section" id="enroll">
+  <h2><span class="num">T2</span> Enroll a Face</h2>
+  <p>Capture a photo of a person and enroll them as an authorised user. Use your webcam or any JPEG photo.</p>
+
+  <h3>Step 1 — Convert your photo to base64</h3>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="comment"># Take a photo with your webcam (requires fswebcam)</span><br>
+    <span class="prompt">$ </span>sudo dnf install -y fswebcam<br>
+    <span class="prompt">$ </span>fswebcam -r 640x480 --no-banner test_face.jpg<br><br>
+    <span class="comment"># OR use an existing photo — convert to base64</span><br>
+    <span class="prompt">$ </span>base64 -w 0 test_face.jpg > face_b64.txt
+  </div>
+
+  <h3>Step 2 — Send enroll request</h3>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>curl -s -X POST http://localhost:8080/api/enroll \<br>
+    &nbsp;&nbsp;<span class="flag">-H</span> "Content-Type: application/json" \<br>
+    &nbsp;&nbsp;<span class="flag">-d</span> "{\"userId\": \"alice\", \"image\": \"$(cat face_b64.txt)\"}" \<br>
+    &nbsp;&nbsp;| python3 -m json.tool
+  </div>
+  <div class="cmd success-block">
+    <span class="comment">Expected response:</span><br>
+    {"success": true, "userId": "alice"}
+  </div>
+
+  <h3>Verify in MongoDB</h3>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>mongosh centurion --eval "db.face_embeddings.find({},{userId:1,enrolledAt:1})"
+  </div>
+</section>
+
+<section class="section" id="identify">
+  <h2><span class="num">T3</span> Identify a Face</h2>
+  <p>This is the main AI pipeline — face detection → embedding → matching → demographics → liveness → IoT trigger.</p>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="comment"># Take a new photo and identify it</span><br>
+    <span class="prompt">$ </span>fswebcam -r 640x480 --no-banner identify_test.jpg<br>
+    <span class="prompt">$ </span>base64 -w 0 identify_test.jpg > id_b64.txt<br><br>
+    <span class="prompt">$ </span>curl -s -X POST http://localhost:8080/api/identify \<br>
+    &nbsp;&nbsp;<span class="flag">-H</span> "Content-Type: application/json" \<br>
+    &nbsp;&nbsp;<span class="flag">-d</span> "{\"image\": \"$(cat id_b64.txt)\"}" \<br>
+    &nbsp;&nbsp;| python3 -m json.tool
+  </div>
+  <div class="cmd success-block">
+    <span class="comment">Expected response (authorised):</span><br>
+    {<br>
+    &nbsp;&nbsp;"eventId": "evt-1234567890",<br>
+    &nbsp;&nbsp;"authorized": true,<br>
+    &nbsp;&nbsp;"userId": "alice",<br>
+    &nbsp;&nbsp;"confidence": 0.9234,<br>
+    &nbsp;&nbsp;"liveness": { "isLive": true, "score": 0.87 },<br>
+    &nbsp;&nbsp;"demographics": { "age": 28, "gender": "Female", "ethnicity": "..." },<br>
+    &nbsp;&nbsp;"iot": { "greenLED": true, "doorUnlocked": true, ... }<br>
+    }
+  </div>
+
+  <h3>Test with an unknown face (should be rejected)</h3>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="comment"># Download a random portrait photo and test it</span><br>
+    <span class="prompt">$ </span>wget -q -O unknown.jpg "https://thispersondoesnotexist.com"<br>
+    <span class="prompt">$ </span>base64 -w 0 unknown.jpg > unknown_b64.txt<br>
+    <span class="prompt">$ </span>curl -s -X POST http://localhost:8080/api/identify \<br>
+    &nbsp;&nbsp;<span class="flag">-H</span> "Content-Type: application/json" \<br>
+    &nbsp;&nbsp;<span class="flag">-d</span> "{\"image\": \"$(cat unknown_b64.txt)\"}" \<br>
+    &nbsp;&nbsp;| python3 -m json.tool<br><br>
+    <span class="comment"># authorized should be false, snapshot saved, IoT red LED triggered</span>
+  </div>
+</section>
+
+<section class="section" id="logs">
+  <h2><span class="num">T4</span> View Access Logs</h2>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="comment"># Last 10 events via API</span><br>
+    <span class="prompt">$ </span>curl -s "http://localhost:8080/api/logs?limit=10" | python3 -m json.tool<br><br>
+    <span class="comment"># Analytics summary</span><br>
+    <span class="prompt">$ </span>curl -s "http://localhost:8080/api/analytics" | python3 -m json.tool<br><br>
+    <span class="comment"># Directly in MongoDB</span><br>
+    <span class="prompt">$ </span>mongosh centurion --eval \<br>
+    &nbsp;&nbsp;"db.access_logs.find().sort({timestamp:-1}).limit(5)"<br><br>
+    <span class="comment"># View saved snapshots of unauthorised attempts</span><br>
+    <span class="prompt">$ </span>ls -lh backend_cpp/snapshots/
+  </div>
+</section>
+
+<section class="section" id="iot">
+  <h2><span class="num">T5</span> IoT Status</h2>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>curl -s http://localhost:8080/api/iot/status | python3 -m json.tool
+  </div>
+  <div class="cmd success-block">
+    <span class="comment">Expected:</span><br>
+    {<br>
+    &nbsp;&nbsp;"greenLED": false,<br>
+    &nbsp;&nbsp;"redLED": false,<br>
+    &nbsp;&nbsp;"buzzer": false,<br>
+    &nbsp;&nbsp;"doorUnlocked": false,<br>
+    &nbsp;&nbsp;"message": "Idle"<br>
+    }
+  </div>
+  <div class="box info">
+    <strong>RASPBERRY PI</strong> — Set <code>GPIO_ENABLED=true</code> in .env and wire LEDs + buzzer to GPIO pins 17, 27, 22. The backend will physically trigger them on every identify call.
+  </div>
+</section>
+
+<section class="section" id="tor">
+  <h2><span class="num">T6</span> Test Tor / Hidden Service</h2>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="comment"># Check Tor is running</span><br>
+    <span class="prompt">$ </span>sudo systemctl status tor<br><br>
+    <span class="comment"># Get your .onion address</span><br>
+    <span class="prompt">$ </span>sudo cat /var/lib/tor/centurion/hostname<br><br>
+    <span class="comment"># Test health endpoint through Tor (install torsocks first)</span><br>
+    <span class="prompt">$ </span>sudo dnf install -y torsocks<br>
+    <span class="prompt">$ </span>torsocks curl http://$(sudo cat /var/lib/tor/centurion/hostname)/health
+  </div>
+</section>
+
+<hr/>
+
+<!-- ERRORS -->
+<section class="section" id="errors">
+  <h2><span class="num">!!</span> Common Errors &amp; Fixes</h2>
+
+  <h3>MongoDB connection failed</h3>
+  <div class="cmd error-block">
+    [MongoDB] Connection failed: No connection could be made
+  </div>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>sudo systemctl start mongod<br>
+    <span class="prompt">$ </span>sudo systemctl status mongod<br>
+    <span class="comment"># If SELinux is blocking it:</span><br>
+    <span class="prompt">$ </span>sudo setsebool -P mongod_can_network_connect 1
+  </div>
+
+  <h3>Model not found / Build fails</h3>
+  <div class="cmd error-block">
+    [ERROR] No face embedding model found in models/
+  </div>
+  <div class="cmd">
+    <span class="comment"># You must place your ONNX model before running</span><br>
+    <span class="prompt">$ </span>ls backend_cpp/models/<br>
+    <span class="comment"># Must contain at minimum: facenet_embedding.onnx</span>
+  </div>
+
+  <h3>cmake: mongocxx not found</h3>
+  <div class="cmd error-block">
+    CMake Error: MongoDB C++ driver not found!
+  </div>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="comment"># Try installing from dnf first</span><br>
+    <span class="prompt">$ </span>sudo dnf install -y mongo-cxx-driver-devel<br><br>
+    <span class="comment"># If not available, build from source:</span><br>
+    <span class="prompt">$ </span>sudo dnf install -y mongo-c-driver-devel cmake openssl-devel<br>
+    <span class="prompt">$ </span>wget https://github.com/mongodb/mongo-cxx-driver/releases/download/r3.10.1/mongo-cxx-driver-r3.10.1.tar.gz<br>
+    <span class="prompt">$ </span>tar xzf mongo-cxx-driver-r3.10.1.tar.gz<br>
+    <span class="prompt">$ </span>cd mongo-cxx-driver-r3.10.1/build<br>
+    <span class="prompt">$ </span>cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..<br>
+    <span class="prompt">$ </span>make -j$(nproc) && sudo make install && sudo ldconfig
+  </div>
+
+  <h3>Port 8080 blocked (SELinux / firewalld)</h3>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>sudo semanage port -a -t http_port_t -p tcp 8080<br>
+    <span class="prompt">$ </span>sudo firewall-cmd --permanent --add-port=8080/tcp<br>
+    <span class="prompt">$ </span>sudo firewall-cmd --reload
+  </div>
+
+  <h3>httplib.h missing</h3>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="prompt">$ </span>wget -O backend_cpp/include/httplib.h \<br>
+    &nbsp;&nbsp;"https://raw.githubusercontent.com/yhirose/cpp-httplib/master/httplib.h"
+  </div>
+
+  <h3>Tor .onion address not generated</h3>
+  <div class="cmd">
+    <button class="copy-btn" onclick="copy(this)">COPY</button>
+    <span class="comment"># Check Tor logs</span><br>
+    <span class="prompt">$ </span>sudo journalctl -u tor -n 50<br><br>
+    <span class="comment"># Fix permissions on hidden service dir</span><br>
+    <span class="prompt">$ </span>sudo chown toranon:toranon /var/lib/tor/centurion/<br>
+    <span class="prompt">$ </span>sudo chmod 700 /var/lib/tor/centurion/<br>
+    <span class="prompt">$ </span>sudo systemctl restart tor<br>
+    <span class="prompt">$ </span>sleep 5 && sudo cat /var/lib/tor/centurion/hostname
+  </div>
+
+  <div class="box warn">
+    <strong>STILL STUCK?</strong> — Check <code>logs/centurion.log</code> for detailed backend errors, and run <code>sudo journalctl -u centurion -f</code> for live systemd output.
+  </div>
+</section>
+
+<!-- API REFERENCE -->
+<section class="section">
+  <h2><span class="num">API</span> Full API Reference</h2>
+  <table>
+    <thead>
+      <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="method get">GET</span></td><td class="ep">/health</td><td>Health check</td></tr>
+      <tr><td><span class="method post">POST</span></td><td class="ep">/api/identify</td><td>Identify face from base64 JPEG — full AI pipeline</td></tr>
+      <tr><td><span class="method post">POST</span></td><td class="ep">/api/enroll</td><td>Enroll new authorised user with face photo</td></tr>
+      <tr><td><span class="method get">GET</span></td><td class="ep">/api/logs?limit=N</td><td>Recent access events from MongoDB</td></tr>
+      <tr><td><span class="method get">GET</span></td><td class="ep">/api/iot/status</td><td>Current IoT device states</td></tr>
+      <tr><td><span class="method get">GET</span></td><td class="ep">/api/analytics</td><td>Aggregated stats: totals, avg confidence, age</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</main>
+</div>
+
+<script>
+function copy(btn) {
+  const block = btn.closest('.cmd');
+  const lines = [...block.childNodes]
+    .filter(n => n.nodeType === Node.TEXT_NODE || (n.nodeType === Node.ELEMENT_NODE && !n.classList.contains('copy-btn')))
+    .map(n => n.textContent)
+    .join('')
+    .replace(/^\s*\$\s*/gm, '')
+    .trim();
+  navigator.clipboard.writeText(lines).then(() => {
+    btn.textContent = 'COPIED!';
+    setTimeout(() => btn.textContent = 'COPY', 1500);
+  });
+}
+</script>
+</body>
+</html>

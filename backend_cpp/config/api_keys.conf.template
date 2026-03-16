@@ -1,0 +1,31 @@
+# Centurion API Keys - Store securely, never commit to git
+# Format: KEY_NAME=value
+
+# Azure Face API
+AZURE_FACE_KEY=your_azure_key_here
+AZURE_ENDPOINT=https://your-resource.cognitiveservices.azure.com/
+
+# AWS Rekognition
+AWS_ACCESS_KEY=your_aws_access_key
+AWS_SECRET_KEY=your_aws_secret_key
+AWS_REGION=us-east-1
+
+# Google Vision API
+GOOGLE_VISION_KEY=your_google_key
+
+# Kairos API
+KAIROS_APP_ID=your_app_id
+KAIROS_API_KEY=your_kairos_key
+
+# Blockchain (Ethereum)
+INFURA_PROJECT_ID=your_infura_id
+ETHEREUM_PRIVATE_KEY=your_private_key_here
+
+# Threat Intelligence
+VIRUSTOTAL_KEY=your_virustotal_key
+HAVEIBEENPWNED_KEY=your_hibp_key
+
+# Tor Configuration
+TOR_ENABLED=false
+TOR_SOCKS5_PROXY=127.0.0.1:9050
+EOF

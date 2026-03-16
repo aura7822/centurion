@@ -1,0 +1,19 @@
+# Centurion Tor Configuration
+
+# General Tor Settings
+SOCKSPort 9050
+ControlPort 9051
+CookieAuthentication 1
+DataDirectory /tmp/tor_centurion
+
+# Logging
+Log notice file /tmp/tor_centurion/tor.log
+Log warn file /tmp/tor_centurion/tor.log
+
+# Hidden Service for Admin Dashboard
+HiddenServiceDir /tmp/tor_centurion/hidden_service/
+HiddenServicePort 80 127.0.0.1:8080
+
+# Additional Security
+ExitPolicy reject *:*  # No exit relay
+SafeLogging 1
