@@ -964,7 +964,7 @@ export default function LoginPage({ onLogin }) {
         <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:20}}>
           <div style={{width:50,height:50,borderRadius:'0%',border:'0px solid rgba(0, 0, 0, 0.4)',display:'flex',alignItems:'center',justifyContent:'center'}}>
                       <img
-  src="https://raw.githubusercontent.com/aura7822/centurion/main/cs.png"      // Replace with actual image URL
+  src="https://raw.githubusercontent.com/aura7822/centurion/main/frontend/public/assets/images/cs.png"      // Replace with actual image URL
   alt="Custom Logo"
   style={{
     width: '120%',
@@ -1172,7 +1172,7 @@ export default function LoginPage({ onLogin }) {
           background:'rgba(0, 0, 0, 1)',
         }}>
           <img
-  src="https://raw.githubusercontent.com/aura7822/centurion/main/c.png"      // Replace with actual image URL
+  src="https://raw.githubusercontent.com/aura7822/centurion/main/frontend/public/assets/images/c.png"      // Replace with actual image URL
   alt="Custom Logo"
   style={{
     width: '120%',
