@@ -6,6 +6,7 @@ database/.env
 !*.conf.template
 
 # Build files
+node_modules/
 backend_cpp/build/
 *.o
 centurion_backend
